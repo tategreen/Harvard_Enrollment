@@ -13,6 +13,8 @@ library(fs)
 library(gt)
 library(tidyverse)
 library(reshape2)
+
+## load in the librarys needed to proceed note the reshape2 library needed ##for the melt command used in my graphic
 ```
 
 ```{r make_chart, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
@@ -53,17 +55,17 @@ x_2018 <- read_excel("reg_2018.xlsx", skip = 3) %>%
 
 ## we use the kip = 3 function to not pay attention to useless data in 
 ##the first three rows. use filter to take out nas from the course_name 
-##and making the data only undergraduates.  Also filter for only government department classes ##GOV 97, GOV 1190, GOV 10, GOV 40, GOV 62 because they are large goverment classes taken in the ##spring that i wanted to look deeper into.  Then select for specific variables we want to look at ##including the number of undergraduates
+##and making the data only undergraduates.  Also filter for only ##government department classes GOV 97, GOV 1190, GOV 10, GOV 40, GOV 62 ##because they are large goverment classes taken in the ##spring that i ##wanted to look deeper into.  Then select for specific variables we want ##to look at including the number of undergraduates
 
 fs::file_delete(c("reg_2018.xlsx", "reg_2019.xlsx")) 
 joined_data <-  x_2018 %>% 
 left_join(x_2019, by = c("course_title"))
 
-## join the data together by course title because that is how we filtered them for above in the ##two data sets
+## join the data together by course title because that is how we filtered ##them for above in the ##two data sets
 
 joined_data_test <- melt(joined_data)
 
-## I used the melt function to create a new column and give me the ability to plot the 2018 and ##2019 enrollment data side by side.
+## I used the melt function to create a new column and give me the ability ##to plot the 2018 and ##2019 enrollment data side by side.
 
 joined_data_test %>%
   ggplot(aes(x = course_title, y = value, fill = variable)) +
