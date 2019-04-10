@@ -1,0 +1,88 @@
+---
+title: "Harvard_Enrollment"
+author: "Tate Green"
+date: "4/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(readxl)
+library(janitor)
+library(fs)
+library(gt)
+library(tidyverse)
+library(reshape2)
+```
+
+```{r make_chart, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+download.file(url = "https://registrar.fas.harvard.edu/files/fas-registrar/files/class_enrollment_summary_by_term_2.28.19.xlsx",
+              destfile = "reg_2019.xlsx",
+              mode = "wb")
+
+download.file(url = "https://registrar.fas.harvard.edu/files/fas-registrar/files/class_enrollment_summary_by_term_03.06.18.xlsx",
+              destfile = "reg_2018.xlsx",
+              mode = "wb")
+
+## read in data from Harvard enrollment in 2019 and 2018
+
+x_2019 <- read_excel("reg_2019.xlsx", skip = 3) %>% 
+  clean_names() %>% 
+  filter(course_department %in% c("Government")) %>%
+  filter(! is.na(course_name)) %>% 
+  filter(!is.na(u_grad)) %>%
+  arrange(desc(u_grad)) %>%
+ arrange(desc(u_grad)) %>%
+ filter(course_title %in% c("GOV 97", "GOV 1190",
+"GOV 10", "GOV 40", "GOV 62")) %>%
+  select(course_id, u_grad, course_name, course_title)
+  
+  ## we use the kip = 3 function to not pay attention to useless data in 
+##the first three rows. use filter to take out nas from the course_name 
+##and making the data only undergraduates.  Also filter for only ##government department classes GOV 97, GOV 1190, GOV 10, GOV 40, GOV 62 ##because they are large goverment classes taken in the ##spring that i ##wanted to look deeper into
+
+x_2018 <- read_excel("reg_2018.xlsx", skip = 3) %>% 
+  clean_names() %>% 
+  filter(course_department %in% c("Government")) %>%
+  filter(! is.na(course_name)) %>% 
+  filter(!is.na(u_grad)) %>%
+  arrange(desc(u_grad)) %>%
+ filter(course_title %in% c("GOV 97", "GOV 1190",
+"GOV 10", "GOV 40", "GOV 62")) %>%
+  select(course_id, u_grad, course_name, course_title)
+
+## we use the kip = 3 function to not pay attention to useless data in 
+##the first three rows. use filter to take out nas from the course_name 
+##and making the data only undergraduates.  Also filter for only government department classes ##GOV 97, GOV 1190, GOV 10, GOV 40, GOV 62 because they are large goverment classes taken in the ##spring that i wanted to look deeper into.  Then select for specific variables we want to look at ##including the number of undergraduates
+
+fs::file_delete(c("reg_2018.xlsx", "reg_2019.xlsx")) 
+joined_data <-  x_2018 %>% 
+left_join(x_2019, by = c("course_title"))
+
+## join the data together by course title because that is how we filtered them for above in the ##two data sets
+
+joined_data_test <- melt(joined_data)
+
+## I used the melt function to create a new column and give me the ability to plot the 2018 and ##2019 enrollment data side by side.
+
+joined_data_test %>%
+  ggplot(aes(x = course_title, y = value, fill = variable)) +
+    geom_bar(stat = "identity", position = "dodge") +
+  
+  ## use ggplot to create a bar graph where the two years stood side by ##side and the bars were ##filled with enrollment for the class we are ##looking at.  Use position = dodge to make the graph 
+  ##look nice
+  
+  theme_minimal() +
+  
+  # used theme_minimal to make the graph look nicer
+  
+labs(y = NULL,
+  x = "Class Code",
+  title  = "5 Interesting Government Class Enrollment Spring 2018 - 2019",
+       subtitle = "Most Government Classes went down except GOV 97",
+       caption = "Data from the Harvard Registrar") +
+  scale_fill_discrete(name = "Year", labels = c("2018", "2019"))
+
+## use labs to add a title, subtitle and caption to show what data we are ##looking.  The govenrment classes GOV 97, GOV 1190, GOV 10, GOV 40, GOV ##62 from Spring 2018 to Spring 2019 enrollment.  The graph shows almost ##all 5 classes went down in enrollment with the exception of Gov 97 which ##is Government Tutorial 
+  
+```
